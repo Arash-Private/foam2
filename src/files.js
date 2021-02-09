@@ -824,6 +824,7 @@ FOAM_FILES([
 
   { name: "foam/u2/view/JSONTextView" },
   { name: "foam/u2/view/MapView" },
+  { name: "foam/u2/view/ReadOnlyMapView" },
   { name: "foam/u2/view/AnyView" },
   { name: "foam/u2/view/ArrayView" },
 
