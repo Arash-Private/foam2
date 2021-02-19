@@ -18,14 +18,19 @@ foam.CLASS({
   ],
 
   css: `
-  .^ left {
-    float: left;
+  ^ .left {
+    width: 50%;
   }
-  .^ right {
-    float: right;
+  ^ .right {
+    position: absolute;
+    right: 0px;
+    width: 50%;
   }
-  .^ lineSeperator {
-    width: 10vw;
+  ^ .foam-u2-layout-Rows {
+    overflow: hidden;
+    border-bottom: 1px solid #d9d9d9;
+    padding-bottom: 8px;
+    padding-top: 8px;
   }
   `,
 
@@ -35,8 +40,6 @@ foam.CLASS({
       this
         .addClass(this.myClass())
         .add(this.slot(function(data) {
-          let size = data.size;
-          let index = 1;
           let e = self.E();
           for (let [key, value] of data) {
             e.add(self.Rows.create()
@@ -46,10 +49,8 @@ foam.CLASS({
               .start().addClass('right')
                 .add(value.toString())
               .end()
-              .callIf(index == size, function() { self.addClass('lineSeperator'); })
-              );
-            console.log(key + ' = ' + value); // 0 = zero \n 1 = one
-            index++;
+            );
+            console.log(key + ' = ' + value);
           }
           return e;
         }));
