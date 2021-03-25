@@ -178,11 +178,15 @@ foam.CLASS({
   ]
 });
 
+
 foam.CLASS({
   package: 'foam.parse',
   name: 'EOF',
 
   documentation: 'Matches the literal EOF of the input stream, useful if you want to force your grammar to only succeed if it consumes the entire input.',
+
+  axioms: [ foam.pattern.Singleton.create() ],
+
 
   methods: [
     function parse(ps) {
@@ -194,6 +198,7 @@ foam.CLASS({
     }
   ]
 });
+
 
 foam.CLASS({
   package: 'foam.parse',
@@ -340,6 +345,7 @@ foam.CLASS({
   ]
 });
 
+
 foam.CLASS({
   package: 'foam.parse',
   name: 'Sequence1',
@@ -381,6 +387,7 @@ foam.CLASS({
     }
   ]
 });
+
 
 foam.CLASS({
   package: 'foam.parse',
@@ -548,10 +555,11 @@ foam.CLASS({
 
         if ( delim && ret.length != 0 ) {
           if ( ! ( res = ps.apply(delim, obj) ) ) break;
-          ps = res;
+        } else {
+          res = ps;
         }
 
-        if ( ! ( res = ps.apply(p, obj) ) ) break;
+        if ( ! ( res = res.apply(p, obj) ) ) break;
         ret.push(res.value);
         ps = res;
       }
@@ -571,6 +579,7 @@ foam.CLASS({
   ]
 });
 
+
 foam.CLASS({
   package: 'foam.parse',
   name: 'Until',
@@ -583,7 +592,7 @@ foam.CLASS({
       var ret = [];
       var p = this.p;
 
-      while ( ps.valid ) {
+      while ( true ) {
         var res;
 
         if ( res = ps.apply(p, obj) ) {
@@ -601,6 +610,7 @@ foam.CLASS({
     }
   ]
 });
+
 
 foam.CLASS({
   package: 'foam.parse',
@@ -620,6 +630,7 @@ foam.CLASS({
     }
   ]
 });
+
 
 foam.CLASS({
   package: 'foam.parse',
@@ -1111,6 +1122,7 @@ foam.CLASS({
   ]
 });
 
+
 foam.CLASS({
   package: 'foam.parse',
   name: 'GrammarAxiom',
@@ -1213,6 +1225,7 @@ foam.CLASS({
     }
   ]
 });
+
 
 foam.CLASS({
   package: 'foam.parse',

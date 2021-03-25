@@ -9,13 +9,12 @@ package foam.nanos.auth;
 import foam.core.ContextAwareSupport;
 import foam.core.X;
 import foam.dao.DAO;
-import foam.nanos.logger.Logger;
 import foam.nanos.NanoService;
+import foam.nanos.logger.Logger;
 import foam.nanos.session.Session;
-import foam.nanos.auth.AuthenticationException;
-import foam.nanos.auth.AuthorizationException;
-import static foam.mlang.MLang.EQ;
+
 import static foam.mlang.MLang.AND;
+import static foam.mlang.MLang.EQ;
 
 public class AgentUserAuthService
   extends    ContextAwareSupport
@@ -33,7 +32,7 @@ public class AgentUserAuthService
   @Override
   public void start() {
     userDAO_          = (DAO) getX().get("localUserDAO");
-    groupDAO_         = (DAO) getX().get("groupDAO");
+    groupDAO_         = (DAO) getX().get("localGroupDAO");
     sessionDAO_       = (DAO) getX().get("localSessionDAO");
     agentJunctionDAO_ = (DAO) getX().get("agentJunctionDAO");
   }
@@ -43,8 +42,8 @@ public class AgentUserAuthService
     sets "user" in the context to the passed in user. This allows users to
     act on behalf of others while retaining information on the user.
   */
-  public User actAs(X x, User entity) throws AuthenticationException {
-    User agent = ((Subject) x.get("subject")).getUser();
+  public Subject actAs(X x, User entity) throws AuthenticationException {
+    User agent = ((Subject) x.get("subject")).getRealUser();
     User user  = (User) userDAO_.find(entity.getId());
 
     // Check for current context user
@@ -52,7 +51,7 @@ public class AgentUserAuthService
       throw new AuthenticationException();
     }
 
-    if ( user == null ) {
+    if ( user == null || user.getLifecycleState() != LifecycleState.ACTIVE ) {
       throw new AuthorizationException("Entity user doesn't exist.");
     }
 
@@ -67,13 +66,18 @@ public class AgentUserAuthService
     agent = (User) agent.fclone();
     agent.freeze();
 
+    // Purge auth cache
+    CachingAuthService.purgeCache(x);
+
     // Set user and agent objects into the session context and place into sessionDAO.
     Session session = x.get(Session.class);
     session.setUserId(user.getId());
     session.setAgentId(agent.getId());
     session = (Session) sessionDAO_.put(session);
     session.setContext(session.applyTo(session.getContext()));
-    return user;
+
+    // Return subject (user and agent) in the session
+    return (Subject) session.getContext().get("subject");
   }
 
   public boolean canActAs(X x, User agent, User entity) {
@@ -101,6 +105,10 @@ public class AgentUserAuthService
         throw new AuthorizationException("You don't have access to act as the requested entity.");
       }
 
+      if ( permissionJunction.getStatus() != AgentJunctionStatus.ACTIVE ) {
+        throw new AuthorizationException("Junction currently disabled, unable to act as user.");
+      }
+
       // Junction object contains a group which has a unique set of permissions specific to the relationship.
       Group actingWithinGroup = (Group) groupDAO_.find(permissionJunction.getGroup());
 
@@ -113,5 +121,27 @@ public class AgentUserAuthService
       logger.error("Unable to act as entity: ", t);
       return false;
     }
+  }
+
+  public void logout(X x) {
+    User agent = ((Subject) x.get("subject")).getRealUser();
+
+    // Check for current context user
+    if ( agent == null || agent.getLifecycleState() != LifecycleState.ACTIVE ) {
+      return;
+    }
+
+    agent = (User) agent.fclone();
+    agent.freeze();
+
+    // Purge auth cache
+    CachingAuthService.purgeCache(x);
+
+    // Update the session and context
+    Session session = x.get(Session.class);
+    session.setUserId(agent.getId());
+    session.setAgentId(0);
+    session = (Session) sessionDAO_.put(session);
+    session.setContext(session.applyTo(session.getContext()));
   }
 }

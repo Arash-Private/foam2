@@ -20,8 +20,9 @@ foam.CLASS({
 
   exports: [
     'currentData as data',
+    'currentData as objData',
     'controllerMode',
-    'currentMemento as memento'
+    'currentMemento_ as memento'
   ],
 
   imports: [
@@ -108,7 +109,7 @@ foam.CLASS({
       },
     },
     ['nodeName', 'DIV'],
-    'currentMemento'
+    'currentMemento_'
   ],
 
   css: `
@@ -134,16 +135,21 @@ foam.CLASS({
       width: 70%;
     }
 
+    
+    /* 
+     * Styles for table contents 
+     */
+
     ^ table .foam-u2-stack-StackView {
       padding-left: 0 !important;
     }
 
-    ^ table .foam-u2-CheckBox {
-      margin: 0px;
-    }
-
     ^ table .foam-u2-tag-TextArea {
       max-width: 100%;
+    }
+
+    ^ table .foam-u2-Multiview-container[style*="float"] .foam-u2-tag-TextArea {
+      width: 100%;
     }
   `,
 
@@ -199,7 +205,7 @@ foam.CLASS({
       var self = this;
 
       if ( this.memento )
-        this.currentMemento$ = this.memento.tail$;
+        this.currentMemento_$ = this.memento.tail$;
 
       var hasTabs = false;
       this.add(this.slot(function(of, properties, actions) {

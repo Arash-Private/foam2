@@ -37,7 +37,7 @@ foam.CLASS({
     'realm',
     'lastModified'
   ],
-  
+
   properties: [
     {
       documentation: 'Local network IP or DNS name, or id to look up in HostDAO',
@@ -45,7 +45,7 @@ foam.CLASS({
       class: 'String',
       label: 'Hostname',
       required: true,
-      tableWidth: 150,
+      tableWidth: 250,
     },
     {
       documentation: 'External DNS name, or name instance is known by. Used in log messages.',
@@ -83,6 +83,16 @@ foam.CLASS({
       name: 'zone',
       class: 'Long',
       value: 0
+    },
+    {
+      documentation: 'A server hosting company proprietary name or id which designates an instance to a some availability area. AWS calls them Availability Zones, while Azure Availablitly Sets or Regions',
+      name: 'availabilityId',
+      class: 'String'
+    },
+    {
+      documentation: 'Override random bucket assignment (1-indexed, 0 indicates auto bucket assignment).',
+      name: 'bucket',
+      class: 'Int'
     },
     {
       documentation: 'Type of a Medusa instance.',
@@ -217,6 +227,22 @@ foam.CLASS({
     {
       documentation: `The id of the user who created the transaction.`,
       name: 'lastModifiedBy',
+      class: 'Reference',
+      of: 'foam.nanos.auth.User',
+      visibility: 'RO',
+      storageOptional: true,
+      tableCellFormatter: function(value, obj) {
+        obj.userDAO.find(value).then(function(user) {
+          if ( user ) {
+            if ( user.email ) {
+              this.add(user.email);
+            }
+          }
+        }.bind(this));
+      }
+    },
+    {
+      name: 'lastModifiedByAgent',
       class: 'Reference',
       of: 'foam.nanos.auth.User',
       visibility: 'RO',

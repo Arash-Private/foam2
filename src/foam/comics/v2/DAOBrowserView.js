@@ -87,6 +87,7 @@ foam.CLASS({
       border-bottom: solid 1px #e7eaec;
       box-sizing: border-box;
       padding: 0 16px;
+      overflow: hidden;
     }
 
     ^canned-queries {
@@ -110,6 +111,10 @@ foam.CLASS({
       height: 34px;
       border-radius: 0 5px 5px 0;
       border: 1px solid;
+    }
+
+    ^browse-view-container .foam-u2-view-ScrollTableView {
+      height: calc(100% - 20px);
     }
   `,
 
@@ -206,11 +211,10 @@ foam.CLASS({
         return {
           class: 'foam.nanos.google.api.sheets.ImportFromGoogleSheetsForm',
           of: this.config.of,
-          dao: this.serviceName
+          dao: this.serviceName || this.data.delegate.serviceName
         };
       }
-    },
-    'currentMemento'
+    }
   ],
 
   actions: [
@@ -256,9 +260,6 @@ foam.CLASS({
       this.onDetach(this.cannedPredicate$.sub(() => {
         this.searchPredicate = foam.mlang.predicate.True.create();
       }));
-
-      if ( this.memento )
-        this.currentMemento$ = this.memento.tail$;
     },
     function click(obj, id) {
       if ( ! this.stack ) return;
@@ -271,8 +272,38 @@ foam.CLASS({
     },
     function initE() {
       var self = this;
+      var filterView;
+      var simpleSearch;
+
+      if ( this.memento && ! this.memento.tail ) {
+        this.memento.tail = foam.nanos.controller.Memento.create({});
+      }
+
+      if ( self.config.searchMode === self.SearchMode.SIMPLE ) {
+        simpleSearch = foam.u2.ViewSpec.createView(self.SimpleSearch, {
+          showCount: false,
+          data$: self.searchPredicate$,
+        }, self, self.__subSubContext__.createSubContext({ memento: this.memento }));
+
+        filterView = foam.u2.ViewSpec.createView(self.FilterView, {
+          dao$: self.searchFilterDAO$,
+          data$: self.searchPredicate$
+        }, self, simpleSearch.__subContext__.createSubContext());
+      } else {
+        filterView = foam.u2.ViewSpec.createView(self.FilterView, {
+          dao$: self.searchFilterDAO$,
+          data$: self.searchPredicate$
+        }, self, self.__subContext__.createSubContext({ memento: this.memento }));
+      }
+
+      var summaryView = foam.u2.ViewSpec.createView(self.summaryView ,{
+        data: self.predicatedDAO$proxy,
+        config: self.config
+      },  filterView, filterView.__subContext__);
+
       this.addClass(this.myClass());
       this.SUPER();
+
       this
         .add(this.slot(function(config$cannedQueries, config$hideQueryBar, searchFilterDAO) {
           return self.E()
@@ -302,18 +333,10 @@ foam.CLASS({
                       controllerMode: foam.u2.ControllerMode.EDIT
                     })
                       .callIf(self.config.searchMode === self.SearchMode.SIMPLE, function() {
-                        this.tag(self.SimpleSearch, {
-                          showCount: false,
-                          data$: self.searchPredicate$,
-                          searchValue: self.memento && self.memento.paramsObj.s
-                        });
+                        this.tag(simpleSearch);
                       })
                       .callIf(self.config.searchMode === self.SearchMode.FULL, function() {
-                        this.tag(self.FilterView, {
-                          dao$: self.searchFilterDAO$,
-                          data$: self.searchPredicate$,
-                          searchValue: self.memento && self.memento.paramsObj.s
-                        });
+                        this.add(filterView);
                     })
                     .endContext()
                     .start()
@@ -331,10 +354,8 @@ foam.CLASS({
                     .end()
                   .end();
               })
-              .start(self.summaryView,{
-                data: self.predicatedDAO$proxy,
-                config: self.config
-              })
+              .start()
+                .add(summaryView)
                 .addClass(self.myClass('browse-view-container'))
               .end()
             .end();
