@@ -17,10 +17,6 @@ foam.CLASS({
 
   requires: [ 'foam.u2.view.RadioView' ],
 
-  exports: [
-    'currentMemento_ as memento'
-  ],
-
   css: `
     ^ { margin: auto; width: 100%; }
   `,
@@ -86,8 +82,7 @@ foam.CLASS({
     {
       class: 'foam.dao.DAOProperty',
       name: 'data'
-    },
-    'currentMemento_'
+    }
   ],
 
   methods: [
@@ -95,22 +90,8 @@ foam.CLASS({
       this.SUPER();
       var self = this;
 
-      if ( this.memento ) {
-        this.currentMemento_$ = this.memento.tail$;
-
-        if ( ! this.memento.tail ) {
-          this.memento.tail = foam.nanos.controller.Memento.create();
-        }
-      }
-
-      if ( this.currentMemento_ ) {
-        if ( ! this.currentMemento_.tail ) {
-          this.currentMemento_.tail = foam.nanos.controller.Memento.create();
-        }
-      }
-
-      if ( this.memento && this.memento.tail && this.memento.tail.head.length != 0 ) {
-        this.selectedView = this.memento.tail.head;
+      if ( this.memento && this.memento.paramsObj.sV ) {
+        this.selectedView = this.memento.paramsObj.sV;
       } else {
         self.setMementoWithSelectedView();
       }
@@ -135,13 +116,15 @@ foam.CLASS({
 
   actions: [
     function setMementoWithSelectedView() {
-      if ( ! this.memento || ! this.memento.tail )
-        return;
+      if ( ! this.memento ) return;
       var view = this.views.find(v => v[0] == this.selectedView);
-      if ( view )
-        this.memento.tail.head = view[1];
-      else
-        this.memento.tail.head = '';
+      if ( view ) {
+        this.memento.paramsObj.sV = view[1];
+      } else {
+        delete this.memento.paramsObj.sV;
+      }
+
+      this.memento.paramsObj = foam.Object.clone(this.memento.paramsObj);
     }
   ]
 });

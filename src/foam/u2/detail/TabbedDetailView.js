@@ -13,10 +13,6 @@ foam.CLASS({
     'memento'
   ],
 
-  exports: [
-    'currentMemento_ as memento'
-  ],
-
   requires: [
     'foam.core.ArraySlot',
     'foam.u2.borders.CardBorder',
@@ -53,15 +49,12 @@ foam.CLASS({
       name: 'defaultSectionLabel',
       value: 'Uncategorized'
     },
-    'tabs',
-    'currentMemento_'
+    'tabs'
   ],
 
   methods: [
     function initE() {
       var self = this;
-
-      this.currentMemento_$ = this.memento$;
 
       this.SUPER();
       this
@@ -88,15 +81,14 @@ foam.CLASS({
 
                     var tab = foam.core.SimpleSlot.create();
                     this
-                      .start(self.Tab, { label$: title$ || self.defaultSectionLabel, selected: self.memento && self.memento.tail && self.memento.tail.head === s.title }, tab)
+                      .start(self.Tab, { label$: title$ || self.defaultSectionLabel, selected: self.memento && self.memento.paramsObj.sT && self.memento.paramsObj.sT === s.title }, tab)
                         .call(function() {
-                          var sectionView = foam.u2.ViewSpec.createView(self.SectionView, {
+                          this.tag(self.SectionView, {
                             data$: self.data$,
                             section: s,
                             showTitle: false,
                             selected$: tab.value.selected$
-                          }, self, self.__subContext__.createSubContext({ memento: null }));
-                          this.add(sectionView)
+                          })
                         })
                       .end();
                   })

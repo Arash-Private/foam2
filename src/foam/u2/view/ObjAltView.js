@@ -39,15 +39,16 @@ foam.CLASS({
         );
       },
       postSet: function() {
-        if ( ! this.memento || ! this.memento.tail )
+        if ( ! this.memento )
           return;
 
         var view = this.views.find(v => v[0] === this.selectedView);
         if ( view ) {
-          this.memento.tail.head = view[1];
+          this.memento.paramsObj.sV = view[1];
         } else {
-          this.memento.tail.head = '';
+          delete this.memento.paramsObj.sV;
         }
+        this.memento.paramsObj = foam.Object.clone(this.memento.paramsObj);
       }
     },
     {
@@ -60,12 +61,8 @@ foam.CLASS({
       this.SUPER();
       var self = this;
 
-      if ( this.memento && ! this.memento.tail ) {
-        this.memento.tail = foam.nanos.controller.Memento.create();
-      }
-
-      if ( this.memento && this.memento.tail && this.memento.tail.head.length != 0 ) {
-        var view = this.views.find(v => v[1] === this.memento.tail.head);
+      if ( this.memento && this.memento.paramsObj.sV ) {
+        var view = this.views.find(v => v[1] === this.memento.paramsObj.sV);
         if ( view ) {
           this.selectedView = view[0];
         } else {

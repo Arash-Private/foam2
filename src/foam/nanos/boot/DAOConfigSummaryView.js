@@ -86,7 +86,7 @@ foam.CLASS({
       imports: [ 'memento', 'stack' ],
 
       exports: [
-        'currentMemento_ as memento'
+        'currentMemento as memento'
       ],
 
       css: `
@@ -106,7 +106,7 @@ foam.CLASS({
           class: 'foam.u2.ViewSpec',
           name: 'inner'
         },
-        'currentMemento_'
+        'currentMemento'
       ],
 
       methods: [
@@ -114,7 +114,7 @@ foam.CLASS({
           this.SUPER();
 
           if ( this.memento )
-            this.currentMemento_$ = this.memento.tail$;
+            this.currentMemento$ = this.memento.tail$;
 
           this.
             start().
@@ -214,7 +214,11 @@ foam.CLASS({
       }
     },
     {
-      name: 'currentMemento_'
+      name: 'currentMemento_',
+      postSet: function(o, n) {
+        if ( this.memento )
+          this.memento.tail = n;
+      }
     }
   ],
 
@@ -296,8 +300,8 @@ foam.CLASS({
               .attrs({title: spec.description})
               .on('click', function() {
                 if ( self.memento ) {
-                  var tail = self.Memento.create({ head: spec.id, tail: self.Memento.create() });
-                  self.memento.tail$.set(tail);
+                  self.memento.tail = self.Memento.create({ head: spec.id });
+                  self.memento.tail.parent = self.memento;
                 }
               });
 
@@ -322,23 +326,22 @@ foam.CLASS({
         });
       });
 
-      if ( this.memento ) {
+      if ( this.memento )
         this.onDetach(this.memento.tail$.sub(this.mementoChange));
-      }
-      this.mementoChange(true);
+      this.mementoChange();
     }
   ],
 
   listeners: [
-    function mementoChange(isInitializing) {
+    function mementoChange() {
       var m = this.memento;
 
-      if ( ! m || ! m.tail || m.tail.head.length == 0 ) {
-        if ( ! isInitializing && ! m.tail ) this.stack.back();
+      if ( ! m || ! m.tail ) {
+        if ( this.currentMemento_ ) this.stack.back();
         return;
       }
 
-      var x = this.__subContext__.createSubContext({ memento: this.memento });
+      var x = this.__subContext__.createSubContext();
       x.register(this.DAOUpdateControllerView, 'foam.comics.DAOUpdateControllerView');
       x.register(this.CustomDAOSummaryView,    'foam.comics.v2.DAOSummaryView');
       x.register(this.CustomDAOUpdateView,     'foam.comics.v2.DAOUpdateView');

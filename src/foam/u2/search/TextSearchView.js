@@ -24,10 +24,6 @@ foam.CLASS({
     'memento'
   ],
 
-  exports: [
-    'currentMemento_'
-  ],
-
   requires: [
     'foam.parse.QueryParser',
     'foam.u2.tag.Input'
@@ -103,13 +99,11 @@ foam.CLASS({
       class: 'Boolean',
       name: 'onKey'
     },
-    'currentMemento_'
+    'searchValue'
   ],
 
   methods: [
     function initE() {
-      if ( this.memento )
-        this.currentMemento_$ = this.memento.tail$;
       this
         .addClass(this.myClass())
         .tag(this.viewSpec, {
@@ -121,15 +115,10 @@ foam.CLASS({
         }, this.view$);
 
       this.view.data$.sub(this.updateValue);
-
-      if ( this.memento && this.memento.head.length != 0  ) {
-        this.view.data = this.memento.head;
-      }
-
       this.updateValue();
 
-      if ( this.memento && this.memento.head ) {
-        this.view.data = this.memento.head;
+      if ( this.searchValue ) {
+        this.view.data = this.searchValue;
       }
     },
 
@@ -147,12 +136,13 @@ foam.CLASS({
       code: function() {
         var value = this.view.data;
 
-        if ( this.memento ) {
+        if (  this.memento ) {
           if ( value ) {
-            this.memento.head = value;
+            this.memento.paramsObj.s = value;
           } else {
-            this.memento.head = '';
+            delete this.memento.paramsObj.s;
           }
+          this.memento.paramsObj = foam.Object.clone(this.memento.paramsObj);
         }
 
         this.predicate = ! value ?

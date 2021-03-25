@@ -56,7 +56,7 @@ foam.CLASS({
   ],
   exports: [
     'controllerMode',
-    'currentMemento_ as memento'
+    'currentMemento as memento'
   ],
   properties: [
     {
@@ -84,9 +84,9 @@ foam.CLASS({
     {
       class: 'String',
       name: 'mementoHead',
-      value: 'create'
+      value: 'Create'
     },
-    'currentMemento_'
+    'currentMemento'
   ],
   actions: [
     {
@@ -137,7 +137,7 @@ foam.CLASS({
       this.SUPER();
 
       if ( this.memento )
-        this.currentMemento_$ = this.memento.tail$;
+        this.currentMemento$ = this.memento.tail$;
 
       this
         .addClass(this.myClass())
