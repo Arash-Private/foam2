@@ -4,6 +4,10 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+
+// TODO ******* ANNNA*******
+// Bold left, grey right
+// set on card white, rounded corner, shadow||border
 foam.CLASS({
   package: 'foam.u2.view',
   name: 'ReadOnlyMapView',
@@ -25,6 +29,7 @@ foam.CLASS({
     position: absolute;
     right: 0px;
     width: 50%;
+    text-align: right;
   }
   ^ .foam-u2-layout-Rows {
     overflow: hidden;
